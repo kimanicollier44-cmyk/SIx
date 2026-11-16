@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  redis-broker:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    restart: always
+
+  si-x-fastapi:
+    build: .
+    command: uvicorn src.mesh_orchestrator:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_URL=redis://redis-broker:6379/0
+    depends_on:
+      - redis-broker
+    restart: always
+
+  scout-bot-agent:
+    build: .
+    command: python3 src/recursive_self_improvement.py
+    depends_on:
+      - si-x-fastapi
+    restart: always
