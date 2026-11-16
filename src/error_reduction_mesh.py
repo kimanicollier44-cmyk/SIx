@@ -6,13 +6,21 @@ class ErrorReducedNeuromorphicCore(nn.Module):
     Neuromorphic core module handling calcium trace multiplication,
     tensor dimension alignment, and error reduction for SI-X.
     """
-    def __init__(self, feature_dim=64):
+    def __init__(self, in_features=64, out_features=64):
         super().__init__()
-        self.feature_dim = feature_dim
-        self.adapter_a = nn.Linear(32, feature_dim)
-        self.adapter_b = nn.Linear(64, feature_dim)
+        self.in_features = in_features
+        self.out_features = out_features
+        
+        # Linear projections matching expected layer signatures
+        self.adapter_in = nn.Linear(in_features, out_features)
+        self.adapter_a = nn.Linear(32, out_features)
+        self.adapter_b = nn.Linear(64, out_features)
 
-    def forward(self, tensor_a: torch.Tensor, tensor_b: torch.Tensor) -> torch.Tensor:
+    def forward(self, tensor_a: torch.Tensor, tensor_b: torch.Tensor = None) -> torch.Tensor:
+        # Handle single-tensor or dual-tensor forward passes from tests
+        if tensor_b is None:
+            return self.adapter_in(tensor_a)
+
         # Ensure feature dimensions match before combining tensors
         if tensor_a.shape[-1] != tensor_b.shape[-1]:
             if tensor_a.shape[-1] == 32:
