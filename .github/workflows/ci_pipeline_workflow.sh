@@ -13,7 +13,7 @@ python3 -m unittest discover -s tests -p "test_*.py"
 echo "[2/3] Validating Docker Compose configuration..."
 docker-compose -f config/docker-compose.yml config > /dev/null
 
-# 3. Lean 4 Formal Proof Verification (if Lean is installed)
+# 3. Lean 4 Formal Proof Verification (Convex Hull & Semigroup proofs)
 if command -v lean &> /dev/null; then
     echo "[3/3] Verifying Lean 4 formal proofs..."
     lean src/lean/SiXProofAssistant.lean
