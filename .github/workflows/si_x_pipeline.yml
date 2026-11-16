@@ -19,18 +19,12 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Install Dependencies
+      - name: Install Python Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install rclpy std-msgs torch
+          pip install torch
 
       - name: Run CI Pipeline Script
         run: |
           chmod +x scripts/ci_pipeline_workflow.sh
           ./scripts/ci_pipeline_workflow.sh
-
-      - name: Run Mesh Deployment Script (Dry-run / Test mode)
-        run: |
-          chmod +x scripts/deploy_mesh_workflow.sh
-          # Optional: comment out if live deployment isn't desired in CI runners
-          # ./scripts/deploy_mesh_workflow.sh
