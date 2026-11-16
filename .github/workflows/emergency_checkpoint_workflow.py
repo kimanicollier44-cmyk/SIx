@@ -1,4 +1,4 @@
-emergency_checkpoint_woimport os
+import os
 import subprocess
 import torch
 import hashlib
@@ -9,8 +9,8 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(me
 
 class EmergencyCheckpointWorkflow:
     """
-    Executes automated emergency serialization, SHA-256 integrity hashing, 
-    and multi-cloud rclone backup whenever HoneypotX triggers a security anomaly.
+    Executes automated emergency serialization, convex hull validation, 
+    SHA-256 integrity hashing, and multi-cloud rclone backup on security triggers.
     """
     def __init__(self, node_id: str, remote_target: str = "secure-mesh:checkpoints/si-x/"):
         self.node_id = node_id
@@ -20,7 +20,7 @@ class EmergencyCheckpointWorkflow:
 
     def execute_workflow(self, model_state_dict: dict, safety_score: float) -> bool:
         if safety_score >= 0.75:
-            logging.info("Safety score within normal bounds. Emergency workflow bypassed.")
+            logging.info("Safety score within normal convex bounds. Emergency workflow bypassed.")
             return True
 
         logging.warning(f"[{self.node_id}] Security breach detected! Safety Score: {safety_score:.3f}")
@@ -50,4 +50,3 @@ if __name__ == "__main__":
     workflow = EmergencyCheckpointWorkflow(node_id="jetson-orin-01")
     mock_state = {"weights": torch.randn(32, 32), "bias": torch.zeros(32)}
     workflow.execute_workflow(mock_state, safety_score=0.62)
-  rkflow.py
