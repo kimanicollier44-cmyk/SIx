@@ -1,0 +1,14 @@
+version: '2.4'
+cluster_name: si-x-edge-swarm
+nodes:
+  - id: jetson-orin-01
+    compute_block: NVIDIA Jetson Orin Nano
+    modules:
+      - spike_bridge_node.py
+      - sar_fusion_node.py
+    telemetry_port: 9001
+  - id: raspberry-pi-edge-02
+    compute_block: Raspberry Pi 5 + Hailo-8 AI
+    modules:
+      - ekf_sensory_bridge.py
+    telemetry_port: 9002
