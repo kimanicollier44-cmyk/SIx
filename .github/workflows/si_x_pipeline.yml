@@ -22,9 +22,19 @@ jobs:
       - name: Install Python Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install torch
+          pip install torch numpy
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Run CI Pipeline Script
         run: |
           chmod +x scripts/ci_pipeline_workflow.sh
           ./scripts/ci_pipeline_workflow.sh
+
+      - name: Run Mesh Deployment Script (CI Test Mode)
+        env:
+          CI_MODE: true
+        run: |
+          chmod +x scripts/deploy_mesh_workflow.sh
+          ./scripts/deploy_mesh_workflow.sh
