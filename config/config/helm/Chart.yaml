@@ -1,0 +1,6 @@
+apiVersion: v2
+name: si-x-mesh
+description: Production Helm chart for SIx Gen-Intel Secure Mesh cluster deployment
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
