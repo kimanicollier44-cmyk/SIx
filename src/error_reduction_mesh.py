@@ -10,19 +10,34 @@ class ErrorReducedNeuromorphicCore(nn.Module):
 
         # Linear projections matching expected layer signatures
         self.adapter_in = nn.Linear(in_features, out_features)
+        self.adapter_b_in = nn.Linear(in_features, out_features)
         self.adapter_a = nn.Linear(32, out_features)
-        self.adapter_b = nn.Linear(32, out_features)  # <--- FIXED: changed from 64 to 32
+        self.adapter_b = nn.Linear(32, out_features)
+
+    def _align(self, tensor, adapter_32, adapter_full):
+        # Project any supported input width onto out_features so the two
+        # tensors can actually be combined element-wise. The old code only
+        # projected 32-wide inputs, so a 64-wide tensor_a was multiplied
+        # against a 32-wide tensor_b and raised a shape RuntimeError.
+        dim = tensor.shape[-1]
+        if dim == 32:
+            return adapter_32(tensor)
+        if dim == self.in_features:
+            return adapter_full(tensor)
+        if dim == self.out_features:
+            return tensor
+        raise ValueError(
+            f"Unsupported feature size {dim}: expected 32, "
+            f"{self.in_features} (in_features) or {self.out_features} (out_features)"
+        )
 
     def forward(self, tensor_a, tensor_b: torch.Tensor = None) -> torch.Tensor:
         # Handle single-tensor or dual-tensor forward passes from tests
         if tensor_b is None:
-            return self.adapter_in(tensor_a)
+            return self._align(tensor_a, self.adapter_a, self.adapter_in)
 
-        # Ensure feature dimensions match before combining tensors
-        if tensor_a.shape[-1] == 32:
-            tensor_a = self.adapter_a(tensor_a)
-        if tensor_b.shape[-1] == 32:
-            tensor_b = self.adapter_b(tensor_b)
+        tensor_a = self._align(tensor_a, self.adapter_a, self.adapter_in)
+        tensor_b = self._align(tensor_b, self.adapter_b, self.adapter_b_in)
 
         # Ensure batch/first dimensions match
         if tensor_a.shape[0] != tensor_b.shape[0]:
@@ -33,3 +48,7 @@ class ErrorReducedNeuromorphicCore(nn.Module):
         # Calcium trace multiplication and error reduction computation
         calcium_weighted = tensor_a * tensor_b * 0.85
         return calcium_weighted
+
+
+# Alias used by the ErrorReductionMesh refactor commits.
+ErrorReductionMesh = ErrorReducedNeuromorphicCore

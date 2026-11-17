@@ -16,8 +16,8 @@ docker compose -f config/docker-compose.yml config > /dev/null
 # 3. Lean 4 Formal Proof Verification (Convex Hull & Semigroup groups)
 echo "[3/3] Verifying Lean 4 formal proofs..."
 if command -v lean &> /dev/null; then
-    lean src/lean/SixProofAssistant.lean
-    lean src/lean/ConvexSemigroupGroup.lean
+    lean src/lean/SiXProofAssistant.lean
+    lean src/lean/ConvexSemigroupProof.lean
 else
     echo "[3/3] Lean 4 compiler not found locally. Skipping formal verification."
 fi
