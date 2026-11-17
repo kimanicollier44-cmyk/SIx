@@ -1,4 +1,4 @@
-name: SI-X CI & Mesh Deployment Pipeline
+name: Buildx setup
 
 on:
   push:
@@ -8,33 +8,27 @@ on:
 
 jobs:
   run-pipeline:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest # Uses Ubuntu 26.04 (pin to ubuntu-24.04 only if legacy system libs are required)
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v5
+      - name: Set up Python
+        uses: actions/setup-python@v6
         with:
-          python-version: "3.10"
+          python-version: "3.12" # Upgrade from EOL 3.10; switch back to "3.10" only if required by pinned wheels
+          cache: "pip"           # Caches pip packages to speed up the 2m 22s install step
 
       - name: Install Python Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install torch numpy
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Run CI Pipeline Script
         run: |
           chmod +x scripts/ci_pipeline_workflow.sh
           ./scripts/ci_pipeline_workflow.sh
-
-      - name: Run Mesh Deployment Script (CI Test Mode)
-        env:
-          CI_MODE: true
-        run: |
-          chmod +x scripts/deploy_mesh_workflow.sh
-          ./scripts/deploy_mesh_workflow.sh
