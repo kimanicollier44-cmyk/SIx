@@ -4,6 +4,8 @@
 
 **SIx — a multi-modal General Intelligence architecture: a secure mesh of PyTorch neuromorphic modules, Lean-checked, CI-green as of Actions run #4** ✅
 
+![SIx Neural Core — Idle · Listening · Thinking · Responding · Learning](assets/neural-core.gif)
+
 [![CI](https://img.shields.io/github/actions/workflow/status/kimanicollier44-cmyk/SIx/si_x_pipeline.yml?branch=main)](https://github.com/kimanicollier44-cmyk/SIx/actions)
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
 ![PyTorch](https://img.shields.io/badge/PyTorch-2.x-EE4C2C?logo=pytorch&logoColor=white)
