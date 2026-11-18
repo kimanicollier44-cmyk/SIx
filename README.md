@@ -5,7 +5,7 @@
 [![CI](https://img.shields.io/github/actions/workflow/status/kimanicollier44-cmyk/SIx/si_x_pipeline.yml?branch=main)](https://github.com/kimanicollier44-cmyk/SIx/actions)
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
 ![PyTorch](https://img.shields.io/badge/PyTorch-2.x-EE4C2C?logo=pytorch&logoColor=white)
-![Tests](https://img.shields.io/badge/Tests-unittest%202%2F2-4CAF50)
+![Tests](https://img.shields.io/badge/Tests-unittest%2013%2F13-4CAF50)
 ![CI](https://img.shields.io/badge/CI-Actions%20run%20%234%20SUCCESS-success?logo=githubactions&logoColor=white)
 
 ## What is this?
@@ -20,9 +20,95 @@ SIx is a multi-modal **General Intelligence architecture** — a secure mesh of 
 - **Formal backing** — two Lean 4 / Mathlib proof files covering conductance quantization, calcium boundedness, Byzantine median stability, and convex-hull boundedness
 - **Recursive self-improvement, with brakes** — evolutionary weight mutation and a meta-learner, fenced in by ethical goal bounds, convex-hull containment, thermal throttling, and a diagnostic dashboard
 
-In one line: **61 files, ~1,600 lines — 38 Python modules in `src/`, 3 ROS 2 nodes, 5 ops scripts, 6 config manifests, 2 Lean proofs, and 1 test module (2 tests), all verified by a GitHub Actions pipeline that is green as of run #4.**
+In one line: **63 files, ~1,800 lines — 39 Python modules in `src/`, 3 ROS 2 nodes, 5 ops scripts, 6 config manifests, 2 Lean proofs, and 2 test modules (13 tests), all verified by a GitHub Actions pipeline that is green as of run #4.**
 
 > Honest scope note: SIx is a research architecture made of simulated/modelled components. The memristor, quantum-conductance, and cryptography modules are software models and simulations — no physical memristor hardware, no certified post-quantum cryptosystem, and no live robot are required (or claimed) to run the test suite. See **Honest limitations** at the end.
+
+---
+
+## 🐳 Fleet Docker Image Registry
+
+`src/docker_fleet_registry.py` is a frozen, offline catalogue of the fleet's published Docker images (namespace `credkellar`) — every image is a record with its full ref (`credkellar/<name>:latest`), pull command, status, and a one-line role. The mesh reads it through `FleetTelemetryAggregator.docker_fleet_summary()`, and `tests/test_docker_fleet_registry.py` pins its totals (11 tests). No network, no clock: the same query returns the same answer on every run.
+
+**Snapshot: 37 live images · 2,262 pulls · 37 stars — verified 2026-11-17 via the Docker Hub API.**
+
+| Image | Pulls | Stars | Pull command |
+|---|---|---|---|
+| superconductor-lab | 150 | 1 | `docker pull credkellar/superconductor-lab:latest` |
+| rate-limit-mask | 107 | 1 | `docker pull credkellar/rate-limit-mask:latest` |
+| ai-jailbreak-re | 89 | 1 | `docker pull credkellar/ai-jailbreak-re:latest` |
+| dronehover-swarm | 88 | 1 | `docker pull credkellar/dronehover-swarm:latest` |
+| orbitx | 85 | 1 | `docker pull credkellar/orbitx:latest` |
+| teleportnet-router | 74 | 1 | `docker pull credkellar/teleportnet-router:latest` |
+| guardrailx | 74 | 1 | `docker pull credkellar/guardrailx:latest` |
+| quantumtunnel-x | 71 | 1 | `docker pull credkellar/quantumtunnel-x:latest` |
+| k3y-fo8 | 70 | 1 | `docker pull credkellar/k3y-fo8:latest` |
+| bellpair-factory | 69 | 1 | `docker pull credkellar/bellpair-factory:latest` |
+| timecrystal-q | 67 | 1 | `docker pull credkellar/timecrystal-q:latest` |
+| hyperloop-lev | 67 | 1 | `docker pull credkellar/hyperloop-lev:latest` |
+| hoverboard-lab | 66 | 1 | `docker pull credkellar/hoverboard-lab:latest` |
+| hovercargo-x | 66 | 1 | `docker pull credkellar/hovercargo-x:latest` |
+| acousticlev-lab | 62 | 1 | `docker pull credkellar/acousticlev-lab:latest` |
+| magchip-q | 62 | 1 | `docker pull credkellar/magchip-q:latest` |
+| casimirx | 61 | 1 | `docker pull credkellar/casimirx:latest` |
+| qec-fortress | 60 | 1 | `docker pull credkellar/qec-fortress:latest` |
+| q6g-1tb | 58 | 1 | `docker pull credkellar/q6g-1tb:latest` |
+| quantumannealer-lab | 55 | 1 | `docker pull credkellar/quantumannealer-lab:latest` |
+| quantumsensor-lab | 55 | 1 | `docker pull credkellar/quantumsensor-lab:latest` |
+| lte-6g | 53 | 1 | `docker pull credkellar/lte-6g:latest` |
+| quantumrandom-lab | 51 | 1 | `docker pull credkellar/quantumrandom-lab:latest` |
+| quantumbattery-lab | 50 | 1 | `docker pull credkellar/quantumbattery-lab:latest` |
+| hoverx | 48 | 1 | `docker pull credkellar/hoverx:latest` |
+| entanglenet-q | 48 | 1 | `docker pull credkellar/entanglenet-q:latest` |
+| maglevx | 47 | 1 | `docker pull credkellar/maglevx:latest` |
+| wormhole-lab | 47 | 1 | `docker pull credkellar/wormhole-lab:latest` |
+| proofclaim | 47 | 1 | `docker pull credkellar/proofclaim:latest` |
+| nanobits-q | 47 | 1 | `docker pull credkellar/nanobits-q:latest` |
+| levitdock-x | 46 | 1 | `docker pull credkellar/levitdock-x:latest` |
+| levitationx | 43 | 1 | `docker pull credkellar/levitationx:latest` |
+| plasmapropulsion-lab | 40 | 1 | `docker pull credkellar/plasmapropulsion-lab:latest` |
+| teleportcargo-sim | 36 | 1 | `docker pull credkellar/teleportcargo-sim:latest` |
+| spaceelevator-physics | 36 | 1 | `docker pull credkellar/spaceelevator-physics:latest` |
+| gravwave-lab | 34 | 1 | `docker pull credkellar/gravwave-lab:latest` |
+| subterrax | 33 | 1 | `docker pull credkellar/subterrax:latest` |
+
+**Pending publication** (pushed to GitHub, not yet on Docker Hub — status `PENDING_PUBLISH`, no counts): `six`, `quantum-synthetic-intelligence-cynefin-solver`, `bb-botx`.
+
+> Honest note: the pull and star counts above are a **dated snapshot** (`SNAPSHOT_DATE = "2026-11-17"` in the module), not live telemetry — the registry never calls the Docker Hub API at runtime, and real counts will have moved since the snapshot was taken.
+
+### 🔀 Registry action flowcharts
+
+#### Browse the catalogue — `all_images()` / `live_images()` / `pending_images()`
+
+```mermaid
+flowchart LR
+    REG["DOCKER_FLEET_REGISTRY<br/>40 frozen records"] --> ALL["all_images()<br/>all 40, registry order"]
+    REG --> F{"filter by status"}
+    F -->|"LIVE"| LIVE["live_images()<br/>37 images"]
+    F -->|"PENDING_PUBLISH"| PEND["pending_images()<br/>3 images, pulls = None"]
+```
+
+#### Totals, ranking & summary — `total_pulls()` / `total_stars()` / `top_images()` / `registry_summary()`
+
+```mermaid
+flowchart LR
+    LIVE["live_images()<br/>37 records"] --> TP["total_pulls()<br/>sum of pulls = 2,262"]
+    LIVE --> TS["total_stars()<br/>sum of stars = 37"]
+    LIVE --> TOP["top_images(n)<br/>sort by pulls, descending"]
+    TP --> SUM["registry_summary()<br/>counts + top image + snapshot date"]
+    TS --> SUM
+    TOP --> SUM
+```
+
+#### Look up one image — `get_image()` / `pull_command()`
+
+```mermaid
+flowchart LR
+    NAME["image name"] --> GET["get_image(name)<br/>registry lookup"]
+    GET -->|"found"| REC["DockerImage record<br/>ref = credkellar/NAME:latest"]
+    GET -->|"unknown"| ERR["KeyError<br/>unknown fleet docker image"]
+    REC --> PC["pull_command(name)<br/>docker pull credkellar/NAME:latest"]
+```
 
 ---
 
@@ -890,7 +976,7 @@ SIx/
 │   ├── test_si_x_mesh.py
 ```
 
-61 files total. (`assets/cover.png` is added by uploading the cover image to an `assets/` folder — the README header points there.)
+63 files total. (`assets/cover.png` is added by uploading the cover image to an `assets/` folder — the README header points there.)
 
 ---
 

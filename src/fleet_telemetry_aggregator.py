@@ -20,3 +20,12 @@ class FleetTelemetryAggregator:
             return torch.zeros(64)
         stacked = torch.stack(tensors, dim=0)
         return torch.median(stacked, dim=0).values
+
+    def docker_fleet_summary(self) -> dict:
+        """Dated snapshot of the fleet's published Docker images.
+
+        Delegates to src.docker_fleet_registry (frozen catalogue,
+        no network); kept separate from the live node telemetry above.
+        """
+        from src.docker_fleet_registry import registry_summary
+        return registry_summary()
