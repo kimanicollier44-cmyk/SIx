@@ -183,6 +183,27 @@ class TestNeuralCoreRenderer(unittest.TestCase):
 
 
 class TestNeuralCoreAssets(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # The assets are binary files that cannot travel with every
+        # checkout channel (e.g. text-only pushes). They are fully
+        # deterministic, so when any of them is missing, regenerate
+        # them in place with the repo's own generator before asserting.
+        expected = [GIF_PATH] + [
+            os.path.join(FRAME_DIR, f"{state.value.lower()}.png")
+            for state in STATE_ORDER
+        ]
+        if all(os.path.exists(path) for path in expected):
+            return
+        import importlib.util
+        gen_path = os.path.join(
+            REPO_ROOT, "scripts", "generate_neural_core_assets.py")
+        spec = importlib.util.spec_from_file_location(
+            "generate_neural_core_assets", gen_path)
+        gen = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(gen)
+        gen.generate()
+
     def test_hero_frames_exist_at_900x900(self):
         for state in STATE_ORDER:
             path = os.path.join(FRAME_DIR, f"{state.value.lower()}.png")
