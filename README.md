@@ -7,7 +7,7 @@
 [![CI](https://img.shields.io/github/actions/workflow/status/kimanicollier44-cmyk/SIx/si_x_pipeline.yml?branch=main)](https://github.com/kimanicollier44-cmyk/SIx/actions)
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
 ![PyTorch](https://img.shields.io/badge/PyTorch-2.x-EE4C2C?logo=pytorch&logoColor=white)
-![Tests](https://img.shields.io/badge/Tests-unittest%2013%2F13-4CAF50)
+![Tests](https://img.shields.io/badge/Tests-unittest%2030%2F30-4CAF50)
 ![CI](https://img.shields.io/badge/CI-Actions%20run%20%234%20SUCCESS-success?logo=githubactions&logoColor=white)
 
 ## What is this?
@@ -22,7 +22,7 @@ SIx is a multi-modal **General Intelligence architecture** — a secure mesh of 
 - **Formal backing** — two Lean 4 / Mathlib proof files covering conductance quantization, calcium boundedness, Byzantine median stability, and convex-hull boundedness
 - **Recursive self-improvement, with brakes** — evolutionary weight mutation and a meta-learner, fenced in by ethical goal bounds, convex-hull containment, thermal throttling, and a diagnostic dashboard
 
-In one line: **63 files, ~1,800 lines — 39 Python modules in `src/`, 3 ROS 2 nodes, 5 ops scripts, 6 config manifests, 2 Lean proofs, and 2 test modules (13 tests), all verified by a GitHub Actions pipeline that is green as of run #4.**
+In one line: **72 files, ~2,700 lines — 40 Python modules in `src/`, 3 ROS 2 nodes, 6 ops scripts, 6 config manifests, 2 Lean proofs, and 3 test modules (30 tests), all verified by a GitHub Actions pipeline that is green as of run #4.**
 
 > Honest scope note: SIx is a research architecture made of simulated/modelled components. The memristor, quantum-conductance, and cryptography modules are software models and simulations — no physical memristor hardware, no certified post-quantum cryptosystem, and no live robot are required (or claimed) to run the test suite. See **Honest limitations** at the end.
 
@@ -115,6 +115,47 @@ flowchart LR
 
 ---
 
+## 🧠 SIx Neural Core — Interface Identity
+
+- **Not a head, not a chatbot.** For a next-generation AI like SIx, the interface is a **floating holographic object with an adaptive core** — it gives the AI its own identity without making it look like a chatbot or a virtual human.
+- **The chosen concept** — of four interface concepts considered, the **Neural AI Orb** is the top pick, and it is named the **SIx Neural Core**: floating 3D intelligence that pulses while thinking and changes colour with activity.
+- **Considered: Holographic Head** — facial expressions, eye tracking, human-like interaction; set aside because it reads as a virtual human.
+- **Considered: Quantum Artifact** — a rotating geometric object that represents intelligence with a unique visual identity; set aside as striking but less alive.
+- **Considered: Adaptive AI Form** — changes shape, reacts to voice, evolves with interaction; set aside because a form that is never the same twice has no fixed identity to recognise.
+- **Five visual states** — the core shows what the mesh is doing by how it moves and what colour it burns:
+
+| State | Appearance |
+|---|---|
+| Idle | Slowly floating and breathing |
+| Listening | Cyan glowing rings |
+| Thinking | Rapid neural pulses |
+| Responding | Expanding communication waves |
+| Learning | New particles connecting |
+
+![SIx Neural Core — the five-state cycle](assets/neural-core.gif)
+
+- **The state frames** — one hero frame per state, rendered by the module itself (900×900 each): [Idle](assets/neural-core/idle.png) · [Listening](assets/neural-core/listening.png) · [Thinking](assets/neural-core/thinking.png) · [Responding](assets/neural-core/responding.png) · [Learning](assets/neural-core/learning.png).
+- **The module** — `src/neural_core_interface.py` (stdlib + Pillow only, **no torch import**, so the interface model runs on a bare edge box): a `NeuralCore` state machine with a legal-transition map — the cycle IDLE → LISTENING → THINKING → RESPONDING → IDLE / LEARNING, any state may return to IDLE, illegal moves raise `IllegalTransitionError` — plus the per-state visual parameter table (dominant colour, pulse rate, ring count, wave and particle-link rates, float and breathing amplitudes; THINKING pulses fastest at 3.2/loop, IDLE slowest at 0.25/loop) and `render_frame(state, phase, size)`, a pure function of its arguments: same input, byte-identical frame.
+- **The assets are real files** — `scripts/generate_neural_core_assets.py` renders the five 900×900 hero frames into `assets/neural-core/` and the animated `assets/neural-core.gif` (20 frames — 4 phases × 5 states, 450 ms per frame, 2,894,721 bytes). Re-running the script reproduces them byte-for-byte; `tests/test_neural_core_interface.py` pins the state machine, the parameter table, renderer determinism, and the asset formats (17 tests).
+- **Try it** — `python3 src/neural_core_interface.py` prints the five states with their legal transitions; `python3 src/neural_core_interface.py --render THINKING --out frame.png` renders a single frame.
+
+#### 🔀 Neural Core state machine — `src/neural_core_interface.py`
+
+```mermaid
+flowchart LR
+    IDLE["IDLE<br/>slowly floating + breathing"] -->|"input arrives"| LISTENING["LISTENING<br/>cyan glowing rings"]
+    LISTENING -->|"input captured"| THINKING["THINKING<br/>rapid neural pulses"]
+    THINKING -->|"answer ready"| RESPONDING["RESPONDING<br/>expanding communication waves"]
+    RESPONDING -->|"integrate the exchange"| LEARNING["LEARNING<br/>new particles connecting"]
+    RESPONDING -->|"done"| IDLE
+    LEARNING -->|"next input"| LISTENING
+    LEARNING -->|"done"| IDLE
+    LISTENING -->|"cancel"| IDLE
+    THINKING -->|"abort"| IDLE
+```
+
+---
+
 ## 🧰 Tech Stack Badges & Full Architecture Tech Stack
 
 ### 💻 Core Programming Languages & Core Systems
@@ -191,7 +232,7 @@ flowchart LR
 | Docker Buildx | Set-up step in the workflow (image builds are not published from this repo — no Docker Hub workflow) |
 | Kubernetes | `config/k8s-ingress.yaml` — nginx Ingress for `mesh.si-x.internal` → `si-x-fastapi-service:8000`, SSL redirect, 3600 s proxy timeouts, cookie affinity |
 | Helm | `config/helm/Chart.yaml` — `si-x-mesh` chart, apiVersion v2, version/appVersion 1.0.0 |
-| unittest | `tests/test_si_x_mesh.py` — 2 tests, run in CI via `python3 -m unittest discover` |
+| unittest | `tests/` — 30 tests across 3 modules, run in CI via `python3 -m unittest discover` |
 
 ### ☁️ Cloud Providers
 
@@ -271,6 +312,7 @@ flowchart TB
 - **Audit & survive.** `src/ledger_audit_logger.py` hash-chains every state transition and safety violation. If `src/honeypot_mission_guard.py` spots a compromised node it hard-quarantines it (watchdog config: `isolation_mode = hard_quarantine`, safety threshold `0.75`) and triggers an emergency checkpoint: `scripts/emergency_checkpoint_workflow.py` / `src/multicloud_sync.py` rclone-sync the state to `secure-mesh:checkpoints/si-x/`.
 - **Improve, carefully.** `src/recursive_self_improvement.py` introspects performance, mutates weights, and validates safety; `src/evolutionary_neuromorphic_core.py` runs mutation/selection on the crossbar; `src/weights_version_manager.py` versions and rotates the checkpoints so a bad mutation can be rolled back.
 - **Prove & verify.** `src/lean/SiXProofAssistant.lean` proves conductance quantization, calcium boundedness, and Byzantine median stability; `src/lean/ConvexSemigroupProof.lean` proves convex combinations stay inside their hull bound. CI (`scripts/ci_pipeline_workflow.sh`) runs the unit tests, validates the Compose manifest, and checks the Lean files when a Lean toolchain is present.
+- **Show its state.** `src/neural_core_interface.py` renders the SIx Neural Core — the mesh's floating holographic face, never a human head: cyan rings while listening, rapid violet pulses while thinking, expanding waves while responding, new particles connecting while learning (see **SIx Neural Core — Interface Identity** above).
 
 ---
 
@@ -780,6 +822,16 @@ flowchart LR
     SYNC --> REMOTE["secure-mesh remote"]
 ```
 
+#### `scripts/generate_neural_core_assets.py` — Neural Core asset generator
+
+```mermaid
+flowchart LR
+    MOD["src/neural_core_interface.py<br/>render_frame(state, phase, size, seed)"] --> HERO["5 hero frames<br/>assets/neural-core/*.png · 900×900"]
+    MOD --> PHASES["20 frames<br/>4 phases × 5 states"]
+    PHASES --> PAL["shared palette<br/>quantised from the IDLE hero frame"]
+    PAL --> GIF["assets/neural-core.gif<br/>450 ms per frame · loops forever"]
+```
+
 ### `tests/` — verification
 
 #### `tests/test_si_x_mesh.py` — `TestSiXMesh`
@@ -788,7 +840,7 @@ flowchart LR
 flowchart LR
     T1["test_ani_agi_bridge<br/>64-wide experts → (2, 32)"] --> SUITE["unittest suite"]
     T2["test_error_reduced_core<br/>64-wide spikes × 32-wide valence → (2, 32)"] --> SUITE
-    SUITE --> RESULT["2 tests · OK"]
+    SUITE --> RESULT["30 tests · OK"]
 ```
 
 ---
@@ -851,7 +903,7 @@ flowchart LR
    ```bash
    python3 -m unittest discover -s tests -p "test_*.py"
    ```
-   Expected: `Ran 2 tests ... OK`
+   Expected: `Ran 30 tests ... OK`
 - **(Optional) Run the full CI script locally**
    ```bash
    chmod +x scripts/ci_pipeline_workflow.sh
@@ -931,6 +983,7 @@ SIx/
 │   ├── deploy_mesh.sh
 │   ├── deploy_mesh_workflow.sh
 │   ├── emergency_checkpoint_workflow.py
+│   ├── generate_neural_core_assets.py
 │   ├── run_ci_pipeline.sh
 ├── src/
 │   ├── __init__.py
@@ -942,6 +995,7 @@ SIx/
 │   ├── continuous_meta_learner.py
 │   ├── convex_hull_semigroup_mesh.py
 │   ├── creative_generative_engine.py
+│   ├── docker_fleet_registry.py
 │   ├── ekf_sensory_bridge.py
 │   ├── error_reduction_mesh.py
 │   ├── ethical_goal_automation.py
@@ -958,6 +1012,7 @@ SIx/
 │   ├── multi_sensory_fusion_core.py
 │   ├── multicloud_sync.py
 │   ├── nanoscale_matrix.py
+│   ├── neural_core_interface.py
 │   ├── osx_native_bridge.py
 │   ├── pq_crypto_bridge.py
 │   ├── quantum_conductance.py
@@ -976,10 +1031,20 @@ SIx/
 │   ├── ConvexSemigroupProof.lean
 │   ├── SiXProofAssistant.lean
 ├── tests/
+│   ├── test_docker_fleet_registry.py
+│   ├── test_neural_core_interface.py
 │   ├── test_si_x_mesh.py
+├── assets/
+│   ├── neural-core.gif
+│   ├── neural-core/
+│   │   ├── idle.png
+│   │   ├── learning.png
+│   │   ├── listening.png
+│   │   ├── responding.png
+│   │   ├── thinking.png
 ```
 
-63 files total. (`assets/cover.png` is added by uploading the cover image to an `assets/` folder — the README header points there.)
+72 files total. (`assets/cover.png` is added by uploading the cover image to an `assets/` folder — the README header points there. The Neural Core GIF and state frames under `assets/` are generated by `scripts/generate_neural_core_assets.py`.)
 
 ---
 
@@ -987,7 +1052,7 @@ SIx/
 
 - **GitHub Actions run #4** for head `a991cf25` — **SUCCESS, 2m 4s** (2026-11-17): unittest suite, Docker Compose config validation, Lean step skipped (no Lean on the runner).
 - **Runs #1–3 failed** on the `error_reduction_mesh` tensor-shape bug described above; the fix is commit `a991cf25`.
-- **Local verification of that fix:** unittest 2/2 OK (CPU torch), plus width-combination checks (64×32, 64×64, 32×32, single-tensor) all returning the correct output shape, and `docker compose config` exit 0.
+- **Local verification of that fix:** unittest 2/2 OK (CPU torch) at the time — the suite has since grown to **30/30 OK** across 3 test modules (mesh 2, fleet registry 11, Neural Core 17; CPU torch) — plus width-combination checks (64×32, 64×64, 32×32, single-tensor) all returning the correct output shape, and `docker compose config` exit 0.
 - **Every badge URL in this README was checked live** before this README was pushed. The workflow badge is the live Shields Actions-status badge for `si_x_pipeline.yml` on `main`.
 - **PUSHED:** kimanicollier44-cmyk/SIx, head **11daa162** — fleet Docker registry merged (registry module, aggregator wiring, 11 registry tests, this README); all 4 read-back blobs = local.
 
@@ -999,7 +1064,7 @@ SIx/
 - **Optional deps aren't in `requirements.txt`.** `redis`, `websockets`, `rclpy`, FastAPI/Uvicorn are imported by their modules but must be installed separately (see Requirements).
 - **One Lean proof is incomplete.** `semigroup_growth_unbounded` in `src/lean/ConvexSemigroupProof.lean` ends in `sorry`. The other theorems (conductance quantization, calcium boundedness, Byzantine median stability, convex-hull boundedness) are complete as written; Lean is not installed on the CI runner, so CI does not type-check these files.
 - **A stray shell script lives in `.github/workflows/`.** `.github/workflows/ci_pipeline_workflow.sh` is a duplicate of the CI script; GitHub Actions ignores non-YAML files there. The real pipeline script is `scripts/ci_pipeline_workflow.sh`, and the legacy `scripts/run_ci_pipeline.sh` still calls Compose v1 (`docker-compose`).
-- **Test coverage is thin.** 2 unit tests cover the ANI→AGI bridge and the error-reduction core. The other 36 `src/` modules are exercised only by import in this README's audit, not by dedicated tests.
+- **Test coverage is still uneven.** 30 unit tests cover the ANI→AGI bridge and the error-reduction core (2), the Docker fleet registry (11), and the Neural Core interface (17). The other 36 `src/` modules are exercised only by import in this README's audit, not by dedicated tests.
 
 ---
 
