@@ -2,6 +2,8 @@
 
 # SIx (Gen-Intel Secure Mesh) 🧠🕸️🔐
 
+**SIx — a multi-modal General Intelligence architecture: a secure mesh of PyTorch neuromorphic modules, Lean-checked, CI-green as of Actions run #4** ✅
+
 [![CI](https://img.shields.io/github/actions/workflow/status/kimanicollier44-cmyk/SIx/si_x_pipeline.yml?branch=main)](https://github.com/kimanicollier44-cmyk/SIx/actions)
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
 ![PyTorch](https://img.shields.io/badge/PyTorch-2.x-EE4C2C?logo=pytorch&logoColor=white)
@@ -28,7 +30,8 @@ In one line: **63 files, ~1,800 lines — 39 Python modules in `src/`, 3 ROS 2 n
 
 ## 🐳 Fleet Docker Image Registry
 
-`src/docker_fleet_registry.py` is a frozen, offline catalogue of the fleet's published Docker images (namespace `credkellar`) — every image is a record with its full ref (`credkellar/<name>:latest`), pull command, status, and a one-line role. The mesh reads it through `FleetTelemetryAggregator.docker_fleet_summary()`, and `tests/test_docker_fleet_registry.py` pins its totals (11 tests). No network, no clock: the same query returns the same answer on every run.
+- **New module** `src/docker_fleet_registry.py` — a frozen, offline catalogue of the fleet's published Docker images (namespace `credkellar`) — every image is a record with its full ref (`credkellar/<name>:latest`), pull command, status, and a one-line role.
+- **Mesh access** — the mesh reads it through `FleetTelemetryAggregator.docker_fleet_summary()`, and `tests/test_docker_fleet_registry.py` pins its totals (11 tests). No network, no clock: the same query returns the same answer on every run.
 
 **Snapshot: 37 live images · 2,262 pulls · 37 stars — verified 2026-11-17 via the Docker Hub API.**
 
@@ -203,7 +206,7 @@ flowchart LR
 
 ## 🏗️ Full Architecture
 
-SIx is organised in five layers. Data flows up from sensors and edge nodes into the neuromorphic cores; security, safety, and checkpointing wrap every layer.
+- **Five layers** — data flows up from sensors and edge nodes into the neuromorphic cores; security, safety, and checkpointing wrap every layer.
 
 ```mermaid
 flowchart TB
@@ -256,18 +259,18 @@ flowchart TB
 
 ## What this does — step by step
 
-1. **Sense.** A sensor array talks to `ros2_nodes/spike_bridge_node.py`, which translates raw readings into neuromorphic spike trains. Tactile data can be converted by `tactile_to_spike_train` in `src/ekf_sensory_bridge.py`, and `src/snn_codec.py` encodes/decodes analog vectors ↔ spike trains.
-2. **Filter.** `src/ekf_sensory_bridge.py` runs an Extended Kalman Filter step to strip multi-modal sensor drift before the data is trusted.
-3. **Transport.** Telemetry moves through the mesh on Redis pub/sub (`src/redis_pubsub_bridge.py`), the WebSocket streamer (`src/websocket_streamer.py`, port 8765), or Zenoh peer TCP (port 7447, `config/zenoh-tcp.json`). Payloads can be signed and verified by `src/pq_crypto_bridge.py`.
-4. **Fuse.** `src/multi_sensory_fusion_core.py` ingests vision, audio, tactile, and EM streams; `src/sar_fusion_node.py` de-speckles orbital radar backscatter and fuses it into the same crossbar.
-5. **Bridge ANI → AGI.** `src/ani_agi_bridge.py` encodes vision tokens, audio tokens, and PINN residuals through three Linear experts, averages them, updates the calcium trace and synaptic efficacy under valence control, quantizes efficacy to `16 × G0` conductance channels, and returns a GELU crossbar output.
-6. **Meta-learn.** `src/continuous_meta_learner.py` concatenates the four 4IR streams (AI tokens, IoT sensors, nanotech telemetry, space downlink), encodes them, and applies the same calcium/efficacy update so the mesh adapts online. `src/federated_curriculum.py` ramps task difficulty `0.1 → 1.0` as accuracy stabilises and aggregates node weights.
-7. **Reduce error.** `src/error_reduction_mesh.py` width-aligns any input tensor (64-wide spikes, 32-wide valence, …) onto `out_features` and returns the calcium-weighted product `a × b × 0.85` — the module whose shape bug failed CI runs #1–3 and whose fix made run #4 green.
-8. **Stay safe.** Every pass is fenced: `src/adversarial_defense.py` clips poisoned gradients at norm 12.0, `src/ethical_goal_automation.py` filters goals through ethical bounds, `src/convex_hull_semigroup_mesh.py` keeps states inside a convex safety hull, `src/thermal_watchdog.py` throttles pulses before Joule heating bites, and `src/calcium_homeostasis.py` extrudes excess calcium so nothing saturates.
-9. **Agree.** `src/consensus_validator.py` median-votes node states, `src/fleet_telemetry_aggregator.py` computes fleet consensus, and `src/multi_agent_negotiation.py` allocates tasks between agents — median-based, so a minority of aberrant nodes cannot drag the result (proved in Lean, below).
-10. **Audit & survive.** `src/ledger_audit_logger.py` hash-chains every state transition and safety violation. If `src/honeypot_mission_guard.py` spots a compromised node it hard-quarantines it (watchdog config: `isolation_mode = hard_quarantine`, safety threshold `0.75`) and triggers an emergency checkpoint: `scripts/emergency_checkpoint_workflow.py` / `src/multicloud_sync.py` rclone-sync the state to `secure-mesh:checkpoints/si-x/`.
-11. **Improve, carefully.** `src/recursive_self_improvement.py` introspects performance, mutates weights, and validates safety; `src/evolutionary_neuromorphic_core.py` runs mutation/selection on the crossbar; `src/weights_version_manager.py` versions and rotates the checkpoints so a bad mutation can be rolled back.
-12. **Prove & verify.** `src/lean/SiXProofAssistant.lean` proves conductance quantization, calcium boundedness, and Byzantine median stability; `src/lean/ConvexSemigroupProof.lean` proves convex combinations stay inside their hull bound. CI (`scripts/ci_pipeline_workflow.sh`) runs the unit tests, validates the Compose manifest, and checks the Lean files when a Lean toolchain is present.
+- **Sense.** A sensor array talks to `ros2_nodes/spike_bridge_node.py`, which translates raw readings into neuromorphic spike trains. Tactile data can be converted by `tactile_to_spike_train` in `src/ekf_sensory_bridge.py`, and `src/snn_codec.py` encodes/decodes analog vectors ↔ spike trains.
+- **Filter.** `src/ekf_sensory_bridge.py` runs an Extended Kalman Filter step to strip multi-modal sensor drift before the data is trusted.
+- **Transport.** Telemetry moves through the mesh on Redis pub/sub (`src/redis_pubsub_bridge.py`), the WebSocket streamer (`src/websocket_streamer.py`, port 8765), or Zenoh peer TCP (port 7447, `config/zenoh-tcp.json`). Payloads can be signed and verified by `src/pq_crypto_bridge.py`.
+- **Fuse.** `src/multi_sensory_fusion_core.py` ingests vision, audio, tactile, and EM streams; `src/sar_fusion_node.py` de-speckles orbital radar backscatter and fuses it into the same crossbar.
+- **Bridge ANI → AGI.** `src/ani_agi_bridge.py` encodes vision tokens, audio tokens, and PINN residuals through three Linear experts, averages them, updates the calcium trace and synaptic efficacy under valence control, quantizes efficacy to `16 × G0` conductance channels, and returns a GELU crossbar output.
+- **Meta-learn.** `src/continuous_meta_learner.py` concatenates the four 4IR streams (AI tokens, IoT sensors, nanotech telemetry, space downlink), encodes them, and applies the same calcium/efficacy update so the mesh adapts online. `src/federated_curriculum.py` ramps task difficulty `0.1 → 1.0` as accuracy stabilises and aggregates node weights.
+- **Reduce error.** `src/error_reduction_mesh.py` width-aligns any input tensor (64-wide spikes, 32-wide valence, …) onto `out_features` and returns the calcium-weighted product `a × b × 0.85` — the module whose shape bug failed CI runs #1–3 and whose fix made run #4 green.
+- **Stay safe.** Every pass is fenced: `src/adversarial_defense.py` clips poisoned gradients at norm 12.0, `src/ethical_goal_automation.py` filters goals through ethical bounds, `src/convex_hull_semigroup_mesh.py` keeps states inside a convex safety hull, `src/thermal_watchdog.py` throttles pulses before Joule heating bites, and `src/calcium_homeostasis.py` extrudes excess calcium so nothing saturates.
+- **Agree.** `src/consensus_validator.py` median-votes node states, `src/fleet_telemetry_aggregator.py` computes fleet consensus, and `src/multi_agent_negotiation.py` allocates tasks between agents — median-based, so a minority of aberrant nodes cannot drag the result (proved in Lean, below).
+- **Audit & survive.** `src/ledger_audit_logger.py` hash-chains every state transition and safety violation. If `src/honeypot_mission_guard.py` spots a compromised node it hard-quarantines it (watchdog config: `isolation_mode = hard_quarantine`, safety threshold `0.75`) and triggers an emergency checkpoint: `scripts/emergency_checkpoint_workflow.py` / `src/multicloud_sync.py` rclone-sync the state to `secure-mesh:checkpoints/si-x/`.
+- **Improve, carefully.** `src/recursive_self_improvement.py` introspects performance, mutates weights, and validates safety; `src/evolutionary_neuromorphic_core.py` runs mutation/selection on the crossbar; `src/weights_version_manager.py` versions and rotates the checkpoints so a bad mutation can be rolled back.
+- **Prove & verify.** `src/lean/SiXProofAssistant.lean` proves conductance quantization, calcium boundedness, and Byzantine median stability; `src/lean/ConvexSemigroupProof.lean` proves convex combinations stay inside their hull bound. CI (`scripts/ci_pipeline_workflow.sh`) runs the unit tests, validates the Compose manifest, and checks the Lean files when a Lean toolchain is present.
 
 ---
 
@@ -792,16 +795,16 @@ flowchart LR
 
 ## Why is this cool? — 10 reasons
 
-1. **It computes with a physical constant.** Synaptic efficacy isn't an abstract float — it's quantized into multiples of `G0 = 2e²/h`, the quantum of conductance, in three separate crossbar modules.
-2. **Plasticity is calcium, not just gradients.** Coincidence-driven calcium traces with `0.85` decay and homeostatic extrusion give the mesh a biologically-flavoured memory that can't saturate — and the bound is *proved in Lean*.
-3. **ANI and AGI in one forward pass.** Narrow experts (vision/audio/physics) are averaged and pushed through a valence-modulated general crossbar — the narrow-to-general bridge is the code, not a diagram.
-4. **Self-improvement with a paper trail.** Recursive mutation + evolutionary selection, but every step is versioned (`weights_version_manager`), audited (`ledger_audit_logger`), and fenced by ethics and convex-hull bounds.
-5. **Security is a layer, not a comment.** Gradient-poisoning clipping, a honeypot that hard-quarantines nodes, hash-chained logs, payload signing, and median consensus all ship as working modules.
-6. **Byzantine tolerance you can check.** Median aggregation means aberrant nodes are bounded by construction — `byzantine_median_stability` is a machine-checked theorem, not a claim.
-7. **It spans robot to cloud.** ROS 2 nodes on a Jetson/Pi edge topology, Redis + WebSocket + Zenoh transport, Compose/K8s/Helm manifests, and rclone checkpoint sync to any object store.
-8. **Hardware-aware by default.** The orchestrator routes MPS → CUDA → CPU, the stimulator emits charge-balanced biphasic pulses, and a thermal watchdog throttles before physics (Joule heating) becomes damage.
-9. **Formal proofs next to the code they describe.** Conductance quantization, calcium boundedness, and hull boundedness live in `src/lean/` beside the Python they model.
-10. **CI actually caught a real bug — and the fix is in the history.** Runs #1–3 failed on a genuine tensor-shape bug; the width-aligning fix (`a991cf25`) turned run #4 green in 2m 4s. The pipeline is a working safety net, not decoration.
+- **It computes with a physical constant.** Synaptic efficacy isn't an abstract float — it's quantized into multiples of `G0 = 2e²/h`, the quantum of conductance, in three separate crossbar modules.
+- **Plasticity is calcium, not just gradients.** Coincidence-driven calcium traces with `0.85` decay and homeostatic extrusion give the mesh a biologically-flavoured memory that can't saturate — and the bound is *proved in Lean*.
+- **ANI and AGI in one forward pass.** Narrow experts (vision/audio/physics) are averaged and pushed through a valence-modulated general crossbar — the narrow-to-general bridge is the code, not a diagram.
+- **Self-improvement with a paper trail.** Recursive mutation + evolutionary selection, but every step is versioned (`weights_version_manager`), audited (`ledger_audit_logger`), and fenced by ethics and convex-hull bounds.
+- **Security is a layer, not a comment.** Gradient-poisoning clipping, a honeypot that hard-quarantines nodes, hash-chained logs, payload signing, and median consensus all ship as working modules.
+- **Byzantine tolerance you can check.** Median aggregation means aberrant nodes are bounded by construction — `byzantine_median_stability` is a machine-checked theorem, not a claim.
+- **It spans robot to cloud.** ROS 2 nodes on a Jetson/Pi edge topology, Redis + WebSocket + Zenoh transport, Compose/K8s/Helm manifests, and rclone checkpoint sync to any object store.
+- **Hardware-aware by default.** The orchestrator routes MPS → CUDA → CPU, the stimulator emits charge-balanced biphasic pulses, and a thermal watchdog throttles before physics (Joule heating) becomes damage.
+- **Formal proofs next to the code they describe.** Conductance quantization, calcium boundedness, and hull boundedness live in `src/lean/` beside the Python they model.
+- **CI actually caught a real bug — and the fix is in the history.** Runs #1–3 failed on a genuine tensor-shape bug; the width-aligning fix (`a991cf25`) turned run #4 green in 2m 4s. The pipeline is a working safety net, not decoration.
 
 ---
 
@@ -826,17 +829,17 @@ flowchart LR
 
 > You only need **Python + PyTorch** to run the verified test suite. ROS 2, Docker, Redis, and Lean are needed only for the layers that use them (see Requirements).
 
-1. **Clone the repo**
+- **Clone the repo**
    ```bash
    git clone https://github.com/kimanicollier44-cmyk/SIx.git
    cd SIx
    ```
-2. **Create a virtual environment (Python 3.12)**
+- **Create a virtual environment (Python 3.12)**
    ```bash
    python3 -m venv .venv
    source .venv/bin/activate        # Windows: .venv\Scripts\activate
    ```
-3. **Install the requirements**
+- **Install the requirements**
    ```bash
    pip install -r requirements.txt
    ```
@@ -844,34 +847,34 @@ flowchart LR
    ```bash
    pip install torch --index-url https://download.pytorch.org/whl/cpu
    ```
-4. **Run the test suite — the same command CI runs**
+- **Run the test suite — the same command CI runs**
    ```bash
    python3 -m unittest discover -s tests -p "test_*.py"
    ```
    Expected: `Ran 2 tests ... OK`
-5. **(Optional) Run the full CI script locally**
+- **(Optional) Run the full CI script locally**
    ```bash
    chmod +x scripts/ci_pipeline_workflow.sh
    ./scripts/ci_pipeline_workflow.sh
    ```
    Step 2 needs Docker Compose v2 (`docker compose config`); step 3 checks the Lean proofs only if `lean` is on your PATH, and skips cleanly otherwise.
-6. **(Optional) Validate / launch the Compose stack**
+- **(Optional) Validate / launch the Compose stack**
    ```bash
    docker compose -f config/docker-compose.yml config   # validate only
    docker compose -f config/docker-compose.yml up --build
    ```
    See Honest limitations before expecting the `si-x-fastapi` service to serve — the repo ships no Dockerfile yet.
-7. **(Optional) Run the ROS 2 edge nodes** — needs a ROS 2 install (`rclpy`, `std_msgs`) on the edge box:
+- **(Optional) Run the ROS 2 edge nodes** — needs a ROS 2 install (`rclpy`, `std_msgs`) on the edge box:
    ```bash
    python3 ros2_nodes/spike_bridge_node.py
    python3 ros2_nodes/actuator_bridge_node.py
    ```
-8. **(Optional) Start the WebSocket telemetry streamer** — needs the `websockets` package:
+- **(Optional) Start the WebSocket telemetry streamer** — needs the `websockets` package:
    ```bash
    pip install websockets
    python3 src/websocket_streamer.py   # ws://0.0.0.0:8765
    ```
-9. **(Optional) Configure the watchdog + sync** — edit `config/security-watchdog.conf` (thresholds, rclone remote `secure-mesh:checkpoints/si-x/`, 65 °C thermal limit) and configure that rclone remote before running `scripts/deploy_mesh.sh` or `scripts/emergency_checkpoint_workflow.py`.
+- **(Optional) Configure the watchdog + sync** — edit `config/security-watchdog.conf` (thresholds, rclone remote `secure-mesh:checkpoints/si-x/`, 65 °C thermal limit) and configure that rclone remote before running `scripts/deploy_mesh.sh` or `scripts/emergency_checkpoint_workflow.py`.
 
 ---
 
@@ -986,6 +989,7 @@ SIx/
 - **Runs #1–3 failed** on the `error_reduction_mesh` tensor-shape bug described above; the fix is commit `a991cf25`.
 - **Local verification of that fix:** unittest 2/2 OK (CPU torch), plus width-combination checks (64×32, 64×64, 32×32, single-tensor) all returning the correct output shape, and `docker compose config` exit 0.
 - **Every badge URL in this README was checked live** before this README was pushed. The workflow badge is the live Shields Actions-status badge for `si_x_pipeline.yml` on `main`.
+- **PUSHED:** kimanicollier44-cmyk/SIx, head **11daa162** — fleet Docker registry merged (registry module, aggregator wiring, 11 registry tests, this README); all 4 read-back blobs = local.
 
 ## ⚠️ Honest limitations
 
