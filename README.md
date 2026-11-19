@@ -1,4 +1,4 @@
-![SIx cover](assets/cover.png)
+![SIx cover](SIx%20cover.png)
 
 # SIx (Gen-Intel Secure Mesh) 🧠🕸️🔐
 
