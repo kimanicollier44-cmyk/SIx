@@ -1,12 +1,17 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 from src.multimodal_engine import MultimodalEngine
 from src.neural_router import InferenceRequest, Modality
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+WEB_INDEX = BASE_DIR / "web" / "index.html"
 
 app = FastAPI(title="Six Neural Core App Gateway", version="0.2.0")
 engine = MultimodalEngine()
@@ -18,6 +23,11 @@ class AskPayload(BaseModel):
     attachments: List[Dict[str, Any]] = Field(default_factory=list)
     sensor_telemetry: Optional[Dict[str, float]] = None
     low_latency_required: bool = False
+
+
+@app.get("/")
+async def serve_ui() -> FileResponse:
+    return FileResponse(WEB_INDEX)
 
 
 @app.get("/health")
