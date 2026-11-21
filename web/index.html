@@ -71,15 +71,14 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 22px 16px 14px;
-      position: relative;
+      padding: 18px 16px 12px;
       flex-shrink: 0;
     }
 
     .orb-wrap {
       position: relative;
-      width: 132px;
-      height: 132px;
+      width: 124px;
+      height: 124px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -95,8 +94,8 @@
     }
 
     .orb-core {
-      width: 92px;
-      height: 92px;
+      width: 88px;
+      height: 88px;
       border-radius: 50%;
       background: radial-gradient(circle at 30% 30%, #ffffff, var(--orb-primary) 42%, var(--orb-secondary) 85%);
       box-shadow: 0 0 32px var(--orb-glow), inset 0 0 18px rgba(255, 255, 255, 0.5);
@@ -106,15 +105,14 @@
     }
 
     .state-badge {
-      margin-top: 12px;
-      font-size: 0.78rem;
+      margin-top: 10px;
+      font-size: 0.76rem;
       letter-spacing: 0.14em;
       text-transform: uppercase;
       color: var(--orb-primary);
       font-weight: 700;
     }
 
-    /* 5-State Holographic Theme Overrides */
     body[data-state="Idle"] {
       --orb-primary: #38bdf8;
       --orb-secondary: #3b82f6;
@@ -216,6 +214,7 @@
 
     .toolbar {
       display: flex;
+      flex-wrap: wrap;
       gap: 8px;
       align-items: center;
       font-size: 0.78rem;
@@ -226,7 +225,7 @@
       background: var(--panel);
       border: 1px solid var(--border);
       color: var(--text);
-      padding: 4px 10px;
+      padding: 5px 10px;
       border-radius: 999px;
       cursor: pointer;
       font-size: 0.75rem;
@@ -276,7 +275,7 @@
       <span id="connDot" class="status-dot"></span>
       <span>SIX // NEURAL CORE</span>
     </div>
-    <span style="font-size: 0.75rem; color: var(--muted);">v0.2.0</span>
+    <span style="font-size: 0.75rem; color: var(--muted);">v0.2.1</span>
   </header>
 
   <section class="core-stage">
@@ -290,14 +289,16 @@
   <main id="chatFeed" class="chat-feed">
     <div class="msg six">
       <div class="route-meta">CORE ONLINE</div>
-      <div>Six Neural Core initialized. Ask anything, toggle Fast Reflex for the PyTorch neuromorphic mesh, or send multimodal tasks.</div>
+      <div>Six Neural Core v0.2.1 ready. Attach an image or audio file, toggle Fast Reflex, or ask anything.</div>
     </div>
   </main>
 
   <footer class="controls">
     <div class="toolbar">
       <button id="reflexToggle" class="chip" type="button">Fast Reflex: OFF</button>
-      <button id="learnBtn" class="chip" type="button">Trigger Learning Pulse</button>
+      <button id="attachBtn" class="chip" type="button">Attach Media</button>
+      <span id="attachName" style="font-size: 0.72rem; color: #5eead4;"></span>
+      <input id="fileInput" type="file" accept="image/*,audio/*" style="display:none;" />
     </div>
     <form id="askForm" class="input-row">
       <input id="promptInput" type="text" placeholder="Ask Six anything..." autocomplete="off" required />
@@ -313,10 +314,13 @@
     const askForm = document.getElementById("askForm");
     const promptInput = document.getElementById("promptInput");
     const reflexToggle = document.getElementById("reflexToggle");
-    const learnBtn = document.getElementById("learnBtn");
+    const attachBtn = document.getElementById("attachBtn");
+    const attachName = document.getElementById("attachName");
+    const fileInput = document.getElementById("fileInput");
 
     let lowLatency = false;
     let ws = null;
+    let pendingAttachments = [];
 
     function setCoreState(state) {
       body.setAttribute("data-state", state);
@@ -372,9 +376,22 @@
       reflexToggle.textContent = `Fast Reflex: ${lowLatency ? "ON" : "OFF"}`;
     });
 
-    learnBtn.addEventListener("click", () => {
-      setCoreState("Learning");
-      setTimeout(() => setCoreState("Idle"), 2500);
+    attachBtn.addEventListener("click", () => fileInput.click());
+
+    fileInput.addEventListener("change", () => {
+      const file = fileInput.files && fileInput.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        pendingAttachments = [{
+          name: file.name,
+          mime_type: file.type,
+          image_url: reader.result
+        }];
+        attachName.textContent = `[${file.name}]`;
+        attachBtn.classList.add("active");
+      };
+      reader.readAsDataURL(file);
     });
 
     promptInput.addEventListener("input", () => {
@@ -390,15 +407,24 @@
       const text = promptInput.value.trim();
       if (!text) return;
 
-      appendMessage("user", text);
+      const label = pendingAttachments.length ? `${text} ${attachName.textContent}` : text;
+      appendMessage("user", label);
+
+      const payload = {
+        prompt: text,
+        modality: pendingAttachments.length ? "multimodal" : "text",
+        attachments: pendingAttachments,
+        low_latency_required: lowLatency
+      };
+
       promptInput.value = "";
+      pendingAttachments = [];
+      attachName.textContent = "";
+      attachBtn.classList.remove("active");
+      fileInput.value = "";
 
       if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({
-          prompt: text,
-          modality: "text",
-          low_latency_required: lowLatency
-        }));
+        ws.send(JSON.stringify(payload));
       } else {
         appendMessage("six", "Reconnecting to Six Neural Core...", "OFFLINE");
       }
