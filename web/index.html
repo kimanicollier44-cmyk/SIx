@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Six — Neural Core</title>
+  <style>
+    :root {
+      --bg: #060913;
+      --panel: rgba(14, 21, 40, 0.85);
+      --border: rgba(94, 234, 212, 0.18);
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --orb-primary: #38bdf8;
+      --orb-secondary: #6366f1;
+      --orb-glow: rgba(56, 189, 248, 0.45);
+      --orb-speed: 6s;
+      --orb-scale: 1;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background: radial-gradient(circle at top, #0f172a 0%, var(--bg) 70%);
+      color: var(--text);
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(6, 9, 19, 0.7);
+      backdrop-filter: blur(10px);
+    }
+
+    .brand {
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #ef4444;
+      box-shadow: 0 0 8px #ef4444;
+    }
+
+    .status-dot.online {
+      background: #22c55e;
+      box-shadow: 0 0 8px #22c55e;
+    }
+
+    .core-stage {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 22px 16px 14px;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .orb-wrap {
+      position: relative;
+      width: 132px;
+      height: 132px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .orb-ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 1.5px dashed var(--orb-primary);
+      opacity: 0.45;
+      animation: spin var(--orb-speed) linear infinite;
+    }
+
+    .orb-core {
+      width: 92px;
+      height: 92px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #ffffff, var(--orb-primary) 42%, var(--orb-secondary) 85%);
+      box-shadow: 0 0 32px var(--orb-glow), inset 0 0 18px rgba(255, 255, 255, 0.5);
+      transform: scale(var(--orb-scale));
+      transition: all 0.35s ease;
+      animation: pulse 2.6s ease-in-out infinite;
+    }
+
+    .state-badge {
+      margin-top: 12px;
+      font-size: 0.78rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--orb-primary);
+      font-weight: 700;
+    }
+
+    /* 5-State Holographic Theme Overrides */
+    body[data-state="Idle"] {
+      --orb-primary: #38bdf8;
+      --orb-secondary: #3b82f6;
+      --orb-glow: rgba(56, 189, 248, 0.4);
+      --orb-speed: 10s;
+      --orb-scale: 1;
+    }
+    body[data-state="Listening"] {
+      --orb-primary: #2dd4bf;
+      --orb-secondary: #10b981;
+      --orb-glow: rgba(45, 212, 191, 0.65);
+      --orb-speed: 4s;
+      --orb-scale: 1.08;
+    }
+    body[data-state="Thinking"] {
+      --orb-primary: #c084fc;
+      --orb-secondary: #ec4899;
+      --orb-glow: rgba(192, 132, 252, 0.75);
+      --orb-speed: 1.4s;
+      --orb-scale: 0.95;
+    }
+    body[data-state="Responding"] {
+      --orb-primary: #34d399;
+      --orb-secondary: #06b6d4;
+      --orb-glow: rgba(52, 211, 153, 0.7);
+      --orb-speed: 3s;
+      --orb-scale: 1.05;
+    }
+    body[data-state="Learning"] {
+      --orb-primary: #fbbf24;
+      --orb-secondary: #f97316;
+      --orb-glow: rgba(251, 191, 36, 0.65);
+      --orb-speed: 2.2s;
+      --orb-scale: 1.03;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { filter: brightness(1); }
+      50% { filter: brightness(1.22); }
+    }
+
+    .chat-feed {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .msg {
+      max-width: 88%;
+      padding: 11px 14px;
+      border-radius: 14px;
+      font-size: 0.93rem;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .msg.user {
+      align-self: flex-end;
+      background: linear-gradient(135deg, #2563eb, #4f46e5);
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+
+    .msg.six {
+      align-self: flex-start;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 4px;
+    }
+
+    .route-meta {
+      display: inline-block;
+      font-size: 0.7rem;
+      color: #5eead4;
+      background: rgba(94, 234, 212, 0.1);
+      border: 1px solid rgba(94, 234, 212, 0.25);
+      padding: 2px 7px;
+      border-radius: 999px;
+      margin-bottom: 6px;
+    }
+
+    .controls {
+      padding: 10px 14px 16px;
+      background: rgba(6, 9, 19, 0.92);
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .chip {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 4px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 0.75rem;
+    }
+
+    .chip.active {
+      border-color: #2dd4bf;
+      color: #2dd4bf;
+      background: rgba(45, 212, 191, 0.12);
+    }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--orb-primary);
+    }
+
+    button.send-btn {
+      background: linear-gradient(135deg, #06b6d4, #3b82f6);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 0 18px;
+      font-weight: 600;
+      font-size: 0.92rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body data-state="Idle">
+  <header>
+    <div class="brand">
+      <span id="connDot" class="status-dot"></span>
+      <span>SIX // NEURAL CORE</span>
+    </div>
+    <span style="font-size: 0.75rem; color: var(--muted);">v0.2.0</span>
+  </header>
+
+  <section class="core-stage">
+    <div class="orb-wrap">
+      <div class="orb-ring"></div>
+      <div class="orb-core"></div>
+    </div>
+    <div id="stateLabel" class="state-badge">IDLE</div>
+  </section>
+
+  <main id="chatFeed" class="chat-feed">
+    <div class="msg six">
+      <div class="route-meta">CORE ONLINE</div>
+      <div>Six Neural Core initialized. Ask anything, toggle Fast Reflex for the PyTorch neuromorphic mesh, or send multimodal tasks.</div>
+    </div>
+  </main>
+
+  <footer class="controls">
+    <div class="toolbar">
+      <button id="reflexToggle" class="chip" type="button">Fast Reflex: OFF</button>
+      <button id="learnBtn" class="chip" type="button">Trigger Learning Pulse</button>
+    </div>
+    <form id="askForm" class="input-row">
+      <input id="promptInput" type="text" placeholder="Ask Six anything..." autocomplete="off" required />
+      <button class="send-btn" type="submit">Send</button>
+    </form>
+  </footer>
+
+  <script>
+    const body = document.body;
+    const stateLabel = document.getElementById("stateLabel");
+    const connDot = document.getElementById("connDot");
+    const chatFeed = document.getElementById("chatFeed");
+    const askForm = document.getElementById("askForm");
+    const promptInput = document.getElementById("promptInput");
+    const reflexToggle = document.getElementById("reflexToggle");
+    const learnBtn = document.getElementById("learnBtn");
+
+    let lowLatency = false;
+    let ws = null;
+
+    function setCoreState(state) {
+      body.setAttribute("data-state", state);
+      stateLabel.textContent = state.toUpperCase();
+    }
+
+    function appendMessage(role, text, routeInfo = "") {
+      const div = document.createElement("div");
+      div.className = `msg ${role}`;
+      if (routeInfo) {
+        const badge = document.createElement("div");
+        badge.className = "route-meta";
+        badge.textContent = routeInfo;
+        div.appendChild(badge);
+      }
+      const content = document.createElement("div");
+      content.textContent = text;
+      div.appendChild(content);
+      chatFeed.appendChild(div);
+      chatFeed.scrollTop = chatFeed.scrollHeight;
+    }
+
+    function connectWS() {
+      const proto = location.protocol === "https:" ? "wss:" : "ws:";
+      ws = new WebSocket(`${proto}//${location.host}/ws/core`);
+
+      ws.onopen = () => {
+        connDot.classList.add("online");
+        setCoreState("Idle");
+      };
+
+      ws.onmessage = (event) => {
+        const msg = JSON.parse(event.data);
+        if (msg.ui_state) {
+          setCoreState(msg.ui_state);
+        }
+        if (msg.payload) {
+          const p = msg.payload;
+          const tag = `${(p.route || "core").toUpperCase()}${p.model ? " · " + p.model : ""}`;
+          appendMessage("six", p.response || JSON.stringify(p), tag);
+        }
+      };
+
+      ws.onclose = () => {
+        connDot.classList.remove("online");
+        setTimeout(connectWS, 2000);
+      };
+    }
+
+    reflexToggle.addEventListener("click", () => {
+      lowLatency = !lowLatency;
+      reflexToggle.classList.toggle("active", lowLatency);
+      reflexToggle.textContent = `Fast Reflex: ${lowLatency ? "ON" : "OFF"}`;
+    });
+
+    learnBtn.addEventListener("click", () => {
+      setCoreState("Learning");
+      setTimeout(() => setCoreState("Idle"), 2500);
+    });
+
+    promptInput.addEventListener("input", () => {
+      if (promptInput.value.trim().length > 0 && body.getAttribute("data-state") === "Idle") {
+        setCoreState("Listening");
+      } else if (promptInput.value.trim().length === 0 && body.getAttribute("data-state") === "Listening") {
+        setCoreState("Idle");
+      }
+    });
+
+    askForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const text = promptInput.value.trim();
+      if (!text) return;
+
+      appendMessage("user", text);
+      promptInput.value = "";
+
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+          prompt: text,
+          modality: "text",
+          low_latency_required: lowLatency
+        }));
+      } else {
+        appendMessage("six", "Reconnecting to Six Neural Core...", "OFFLINE");
+      }
+    });
+
+    connectWS();
+  </script>
+</body>
+</html>
