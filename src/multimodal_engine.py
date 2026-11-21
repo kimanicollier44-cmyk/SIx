@@ -6,27 +6,23 @@ from typing import Any, Dict, Optional
 import httpx
 import torch
 
+from src.core_adapters import SixCoreAdapters
 from src.neural_router import InferenceRequest, NeuralRouter, RouteTarget
 
 
 class MultimodalEngine:
-    """
-    Unified execution engine bridging Six's PyTorch Neuromorphic Core
-    with local SLMs and cloud multimodal models.
-    """
-
     def __init__(
         self,
         router: Optional[NeuralRouter] = None,
-        neuromorphic_bridge: Optional[Any] = None,
+        adapters: Optional[SixCoreAdapters] = None,
         local_endpoint: str = os.getenv("SIX_LOCAL_MODEL_URL", "http://localhost:11434/v1/chat/completions"),
         cloud_endpoint: str = os.getenv("SIX_CLOUD_MODEL_URL", "https://api.openai.com/v1/chat/completions"),
         cloud_api_key: str = os.getenv("SIX_CLOUD_API_KEY", ""),
         local_model: str = os.getenv("SIX_LOCAL_MODEL", "llama3.2-vision"),
         cloud_model: str = os.getenv("SIX_CLOUD_MODEL", "gpt-4o"),
     ) -> None:
-        self.router = router or NeuralRouter()
-        self.neuromorphic_bridge = neuromorphic_bridge
+        self.adapters = adapters or SixCoreAdapters()
+        self.router = router or NeuralRouter(safety_guard=self.adapters)
         self.local_endpoint = local_endpoint
         self.cloud_endpoint = cloud_endpoint
         self.cloud_api_key = cloud_api_key
@@ -50,17 +46,18 @@ class MultimodalEngine:
                 "status": "blocked",
                 "route": decision.target.value,
                 "reason": decision.reason,
-                "response": "Request blocked by Six Safety & Security layer.",
+                "response": f"Blocked: {decision.reason}",
             }
 
         if decision.target == RouteTarget.NEUROMORPHIC_FAST:
-            output = self._run_neuromorphic_mesh(req)
+            raw_output = self._run_neuromorphic_mesh(req)
+            bridged = self._apply_agi_bridge(raw_output, req)
             return {
                 "status": "ok",
                 "route": decision.target.value,
                 "device": self.device,
                 "reason": decision.reason,
-                "response": output,
+                "response": bridged,
             }
 
         if decision.target == RouteTarget.LOCAL_SLM:
@@ -70,39 +67,63 @@ class MultimodalEngine:
                 api_key="local",
                 req=req,
             )
+            bridged = self._apply_agi_bridge(text, req)
             return {
                 "status": "ok",
                 "route": decision.target.value,
                 "model": self.local_model,
                 "reason": decision.reason,
-                "response": text,
+                "response": bridged,
             }
 
-        # RouteTarget.FRONTIER_REASONING
         text = await self._call_openai_compatible(
             url=self.cloud_endpoint,
             model=self.cloud_model,
             api_key=self.cloud_api_key,
             req=req,
         )
+        bridged = self._apply_agi_bridge(text, req)
         return {
             "status": "ok",
             "route": decision.target.value,
             "model": self.cloud_model,
             "reason": decision.reason,
-            "response": text,
+            "response": bridged,
         }
 
     def _run_neuromorphic_mesh(self, req: InferenceRequest) -> str:
-        if self.neuromorphic_bridge is not None and hasattr(self.neuromorphic_bridge, "step"):
-            result = self.neuromorphic_bridge.step(req.sensor_telemetry or {"prompt_len": float(len(req.prompt))})
-            return f"Neuromorphic Mesh Output ({self.device}): {result}"
-
-        # Built-in PyTorch tensor pass when bridge is not attached
         values = list((req.sensor_telemetry or {"signal": float(len(req.prompt))}).values())
         tensor = torch.tensor(values, dtype=torch.float32, device=self.device)
         activated = torch.tanh(tensor)
-        return f"Neuromorphic Core [{self.device}] state vector: {activated.tolist()}"
+
+        mesh = self.adapters.error_mesh
+        if mesh is not None:
+            for fn_name in ("reduce_error", "stabilize", "forward", "step"):
+                fn = getattr(mesh, fn_name, None)
+                if callable(fn):
+                    try:
+                        activated = fn(activated)
+                        break
+                    except Exception:
+                        continue
+
+        as_list = activated.detach().cpu().tolist() if isinstance(activated, torch.Tensor) else activated
+        return f"Neuromorphic Core [{self.device}] state vector: {as_list}"
+
+    def _apply_agi_bridge(self, response_text: str, req: InferenceRequest) -> str:
+        bridge = self.adapters.agi_bridge
+        if bridge is None:
+            return response_text
+        for fn_name in ("bridge", "transform", "integrate", "process"):
+            fn = getattr(bridge, fn_name, None)
+            if callable(fn):
+                try:
+                    out = fn(response_text, {"modality": req.modality.value, "prompt": req.prompt})
+                    if isinstance(out, str) and out.strip():
+                        return out
+                except Exception:
+                    continue
+        return response_text
 
     async def _call_openai_compatible(
         self,
