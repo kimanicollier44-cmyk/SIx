@@ -2,7 +2,7 @@
 
 # SIx (Gen-Intel Secure Mesh) 🧠🕸️🔐
 
-**SIx — a multi-modal General Intelligence architecture: a secure mesh of PyTorch neuromorphic modules, Lean-checked, CI-green as of Actions run #4** ✅
+**SIx — a multi-modal General Intelligence architecture: a secure mesh of PyTorch neuromorphic modules with a FastAPI app layer and web UI, Lean-checked, and a CI pipeline restored on 2026-11-24** ✅
 
 ![SIx Neural Core — Idle · Listening · Thinking · Responding · Learning](assets/neural-core.gif)
 
@@ -10,7 +10,7 @@
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
 ![PyTorch](https://img.shields.io/badge/PyTorch-2.x-EE4C2C?logo=pytorch&logoColor=white)
 ![Tests](https://img.shields.io/badge/Tests-unittest%2030%2F30-4CAF50)
-![CI](https://img.shields.io/badge/CI-Actions%20run%20%234%20SUCCESS-success?logo=githubactions&logoColor=white)
+![CI](https://img.shields.io/badge/CI-Fix%20pushed%202026--11--24-2088FF?logo=githubactions&logoColor=white)
 
 ## What is this?
 
@@ -21,10 +21,11 @@ SIx is a multi-modal **General Intelligence architecture** — a secure mesh of 
 - **ANI → AGI bridging** — narrow expert encoders (vision, audio, physics/PINN) averaged into one latent state and pushed through a valence-modulated AGI crossbar
 - **A secure-mesh layer** — adversarial gradient clipping, a honeypot watchdog with hard quarantine, hash-chained audit logging, lattice-inspired payload signing, median/Byzantine-robust consensus, and rclone emergency checkpointing
 - **Edge + robotics plumbing** — ROS 2 bridge nodes, Redis pub/sub telemetry, a WebSocket streamer, Zenoh TCP peer config, and an edge topology spanning a Jetson Orin Nano and a Raspberry Pi 5 + Hailo-8
+- **An app layer with a face** — a FastAPI gateway (`src/app_gateway.py`) serving the web UI plus `/health`, `/ask`, and `/ws/core` endpoints, a `NeuralRouter` that classifies each request by modality and routes it (safety-blocked / neuromorphic-fast / local SLM / frontier), a `MultimodalEngine` that answers sensor and low-latency prompts on the local PyTorch mesh, and `SixCoreAdapters` wiring the mesh's own guard, bridge, error-mesh, and Neural Core modules into the app
 - **Formal backing** — two Lean 4 / Mathlib proof files covering conductance quantization, calcium boundedness, Byzantine median stability, and convex-hull boundedness
 - **Recursive self-improvement, with brakes** — evolutionary weight mutation and a meta-learner, fenced in by ethical goal bounds, convex-hull containment, thermal throttling, and a diagnostic dashboard
 
-In one line: **72 files, ~2,700 lines — 40 Python modules in `src/`, 3 ROS 2 nodes, 6 ops scripts, 6 config manifests, 2 Lean proofs, and 3 test modules (30 tests), all verified by a GitHub Actions pipeline that is green as of run #4.**
+In one line: **45 Python modules in `src/` (the neuromorphic mesh plus the FastAPI app layer), 3 ROS 2 nodes, 6 config manifests, 2 Lean proofs, a web UI, and 4 test modules — 30 unittest tests, verified against this exact tree in a clean venv on 2026-11-24 after the CI requirements fix (head `afc1d4ed`).**
 
 > Honest scope note: SIx is a research architecture made of simulated/modelled components. The memristor, quantum-conductance, and cryptography modules are software models and simulations — no physical memristor hardware, no certified post-quantum cryptosystem, and no live robot are required (or claimed) to run the test suite. See **Honest limitations** at the end.
 
@@ -158,6 +159,27 @@ flowchart LR
 
 ---
 
+## 🌐 App Layer — Gateway, Router, Engine & Web UI
+
+- **The gateway** — `src/app_gateway.py` is a real FastAPI app (`Six Neural Core App Gateway`, version 0.2.1): `GET /` serves the web UI (`web/index.html`), `GET /health` returns status + device + which core modules the adapters loaded, `POST /ask` runs one inference request, and `WS /ws/core` streams Neural Core UI states (Idle → Listening → Thinking → Responding → Idle) around each answer.
+- **The router** — `src/neural_router.py` classifies every `InferenceRequest` by modality (text / vision / audio / sensor / multimodal — sensor telemetry or multiple attachments upgrade the class) and routes it: safety-guard block → `safety_blocked`; sensor or low-latency → `neuromorphic_fast`; otherwise local SLM or frontier reasoning by complexity. Every decision carries a reason, an estimated VRAM figure, and a timestamp, and is audit-logged when a logger is wired.
+- **The engine** — `src/multimodal_engine.py` executes the decision. The `neuromorphic_fast` route runs **locally and offline** on the PyTorch mesh (device auto-detected: CUDA → MPS → CPU) and passes the result through the ANI→AGI bridge. The local-SLM and frontier routes call OpenAI-compatible chat endpoints (`httpx`) configured by env vars — `SIX_LOCAL_MODEL_URL` (default a localhost Ollama-style endpoint), `SIX_CLOUD_MODEL_URL`, `SIX_CLOUD_API_KEY`, `SIX_LOCAL_MODEL`, `SIX_CLOUD_MODEL` — and stay inert until configured.
+- **The adapters** — `src/core_adapters.py` (`SixCoreAdapters`) best-effort-wires the mesh's own modules into the app: the honeypot mission guard as the router's safety guard, the ANI→AGI bridge, the error-reduction mesh, and the Neural Core interface for UI state sync. Each load is recorded in `loaded_modules`; a module that fails to import or construct is recorded as not loaded instead of crashing the gateway.
+- **The tests** — `tests/test_six_app_layer.py` pins the router (blocked + fast routes), the engine's neuromorphic fast pass, and the gateway's `/health` + `/ask` via FastAPI's `TestClient`. They are pytest-style functions: pytest runs them; CI's unittest discover imports the module — which is exactly how a missing dependency in this layer breaks CI (see Verification status).
+
+```mermaid
+flowchart LR
+    UI["web/index.html<br/>browser UI"] -->|"POST /ask or WS /ws/core"| GW["app_gateway.py<br/>FastAPI app"]
+    GW --> ENG["multimodal_engine.py<br/>MultimodalEngine.infer()"]
+    ENG --> RT["neural_router.py<br/>classify + route"]
+    RT -->|"safety_blocked"| BLK["blocked response"]
+    RT -->|"neuromorphic_fast"| MESH["local PyTorch mesh<br/>+ ANI→AGI bridge"]
+    RT -->|"local_slm / frontier"| API["OpenAI-compatible endpoint<br/>env-configured, inert by default"]
+    ENG -.-> ADP["core_adapters.py<br/>guard · bridge · error mesh · Neural Core"]
+```
+
+---
+
 ## 🧰 Tech Stack Badges & Full Architecture Tech Stack
 
 ### 💻 Core Programming Languages & Core Systems
@@ -191,7 +213,7 @@ flowchart LR
 | Redis pub/sub | `src/redis_pubsub_bridge.py` telemetry routing; `redis-broker` service (`redis:alpine`, port 6379) in `config/docker-compose.yml` |
 | WebSockets | `src/websocket_streamer.py` — async server on `ws://0.0.0.0:8765` returning `synchronized` processed telemetry |
 | Zenoh | `config/zenoh-tcp.json` — peer mode, connect/listen on TCP 7447, QoS enabled |
-| FastAPI + Uvicorn | The `si-x-fastapi` compose service command (`uvicorn src.mesh_orchestrator:app`, port 8000) — see Honest limitations |
+| FastAPI + Uvicorn | `src/app_gateway.py` — the real FastAPI `app` (UI at `/`, `GET /health`, `POST /ask`, `WS /ws/core`), served by Uvicorn; the Compose `si-x-fastapi` service still points at `src.mesh_orchestrator:app` — see Honest limitations |
 
 ### ⚙️ Platform Support & Hardware Architecture
 
@@ -229,12 +251,12 @@ flowchart LR
 
 | Tool | Where it is used |
 |---|---|
-| GitHub Actions | `.github/workflows/si_x_pipeline.yml` — checkout v6, setup-python v6 (3.12, pip cache), Docker Buildx v4, then `./scripts/ci_pipeline_workflow.sh`. Run #4 (`a991cf25`) = **SUCCESS, 2m 4s** |
+| GitHub Actions | `.github/workflows/si_x_pipeline.yml` — checkout v6, setup-python v6 (3.12, pip cache), Docker Buildx v4, then `./scripts/ci_pipeline_workflow.sh`. Run #4 (`a991cf25`) = **SUCCESS, 2m 4s** (2026-11-17). On 2026-11-24 the run failed at the test step — the app-layer rewrite of `requirements.txt` had dropped Pillow — and the fix (declare `Pillow` + `websockets`) was pushed as head `afc1d4ed` after a clean-venv reproduction (30/30 OK) |
 | Docker Compose v2 | `config/docker-compose.yml` — `redis-broker`, `si-x-fastapi`, `scout-bot-agent`; validated in CI by `docker compose config` |
 | Docker Buildx | Set-up step in the workflow (image builds are not published from this repo — no Docker Hub workflow) |
 | Kubernetes | `config/k8s-ingress.yaml` — nginx Ingress for `mesh.si-x.internal` → `si-x-fastapi-service:8000`, SSL redirect, 3600 s proxy timeouts, cookie affinity |
 | Helm | `config/helm/Chart.yaml` — `si-x-mesh` chart, apiVersion v2, version/appVersion 1.0.0 |
-| unittest | `tests/` — 30 tests across 3 modules, run in CI via `python3 -m unittest discover` |
+| unittest | `tests/` — 30 tests across 4 modules, run in CI via `python3 -m unittest discover` (the app-layer module's 3 tests are pytest-style functions — unittest imports the module, pytest runs them) |
 
 ### ☁️ Cloud Providers
 
@@ -897,7 +919,7 @@ flowchart LR
    ```bash
    pip install -r requirements.txt
    ```
-   This installs `torch>=2.0.0` and `pytest`. On a CPU-only machine, the CPU wheel is enough:
+   This installs the declared stack: `torch`, `fastapi`, `uvicorn[standard]`, `httpx`, `pydantic`, `redis`, `Pillow`, and `websockets`. On a CPU-only machine, the CPU wheel is enough:
    ```bash
    pip install torch --index-url https://download.pytorch.org/whl/cpu
    ```
@@ -918,14 +940,18 @@ flowchart LR
    docker compose -f config/docker-compose.yml up --build
    ```
    See Honest limitations before expecting the `si-x-fastapi` service to serve — the repo ships no Dockerfile yet.
+- **(Optional) Run the app layer (gateway + web UI)**
+   ```bash
+   uvicorn src.app_gateway:app --host 0.0.0.0 --port 8000
+   ```
+   Then open `http://localhost:8000/` for the UI, or `GET /health` for status. Sensor / low-latency prompts are answered on the local neuromorphic mesh; the local-SLM and frontier routes call OpenAI-compatible endpoints configured by `SIX_LOCAL_MODEL_URL` / `SIX_CLOUD_MODEL_URL` (+ `SIX_CLOUD_API_KEY`) and stay inert until you set them.
 - **(Optional) Run the ROS 2 edge nodes** — needs a ROS 2 install (`rclpy`, `std_msgs`) on the edge box:
    ```bash
    python3 ros2_nodes/spike_bridge_node.py
    python3 ros2_nodes/actuator_bridge_node.py
    ```
-- **(Optional) Start the WebSocket telemetry streamer** — needs the `websockets` package:
+- **(Optional) Start the WebSocket telemetry streamer** — `websockets` is in `requirements.txt`:
    ```bash
-   pip install websockets
    python3 src/websocket_streamer.py   # ws://0.0.0.0:8765
    ```
 - **(Optional) Configure the watchdog + sync** — edit `config/security-watchdog.conf` (thresholds, rclone remote `secure-mesh:checkpoints/si-x/`, 65 °C thermal limit) and configure that rclone remote before running `scripts/deploy_mesh.sh` or `scripts/emergency_checkpoint_workflow.py`.
@@ -940,18 +966,18 @@ flowchart LR
 |---|---|
 | Python | 3.12 (CI-pinned; modules are plain PyTorch and also run on nearby 3.x) |
 | PyTorch | `torch>=2.0.0` — in `requirements.txt`; CPU wheel is sufficient for the tests |
-| pytest | In `requirements.txt` (the suite itself is `unittest`-style and runs without pytest) |
+| FastAPI + Uvicorn + httpx + pydantic | In `requirements.txt` — the app layer (`src/app_gateway.py`, `src/multimodal_engine.py`); `fastapi.testclient` is imported by the app-layer tests |
+| Pillow | In `requirements.txt` — `src/neural_core_interface.py` renders the Neural Core frames with it; its absence is what broke CI on 2026-11-24 |
+| pytest | NOT required by CI (the suite runs under `unittest`); needed only to execute the 3 pytest-style app-layer tests in `tests/test_six_app_layer.py` |
 | Bash | For `scripts/*.sh` |
 | Docker Compose v2 | Only for CI step 2 / the Compose stack (`docker compose config`) |
 
-**Optional — only for the layer that uses it (NOT in `requirements.txt`):**
+**Optional — only for the layer that uses it:**
 
 | Requirement | Used by |
 |---|---|
 | ROS 2 (`rclpy`, `std_msgs`) | `ros2_nodes/*.py` |
-| `redis` Python client + a Redis server | `src/redis_pubsub_bridge.py` (server: `redis:alpine` in Compose) |
-| `websockets` | `src/websocket_streamer.py` |
-| FastAPI + Uvicorn | The `si-x-fastapi` Compose service command |
+| A running Redis server | Only to use the pub/sub bridge live — the Python clients for Redis, WebSockets, and the FastAPI stack are all declared in `requirements.txt` (server: `redis:alpine` in Compose) |
 | Lean 4 + Mathlib | `src/lean/*.lean` (CI skips this step when Lean is absent) |
 | rclone + a configured `secure-mesh` remote | `src/multicloud_sync.py`, `scripts/emergency_checkpoint_workflow.py` |
 | NVIDIA Jetson Orin Nano / Raspberry Pi 5 + Hailo-8 / Apple Silicon | The edge topology and MPS bridge — the code runs on plain CPU without them |
@@ -963,6 +989,7 @@ flowchart LR
 ```
 SIx/
 ├── README.md
+├── SIx cover.png
 ├── requirements.txt
 ├── .github/workflows/
 │   ├── ci_pipeline_workflow.sh
@@ -991,11 +1018,13 @@ SIx/
 │   ├── __init__.py
 │   ├── adversarial_defense.py
 │   ├── ani_agi_bridge.py
+│   ├── app_gateway.py
 │   ├── biphasic_stimulator.py
 │   ├── calcium_homeostasis.py
 │   ├── consensus_validator.py
 │   ├── continuous_meta_learner.py
 │   ├── convex_hull_semigroup_mesh.py
+│   ├── core_adapters.py
 │   ├── creative_generative_engine.py
 │   ├── docker_fleet_registry.py
 │   ├── ekf_sensory_bridge.py
@@ -1013,8 +1042,10 @@ SIx/
 │   ├── multi_agent_negotiation.py
 │   ├── multi_sensory_fusion_core.py
 │   ├── multicloud_sync.py
+│   ├── multimodal_engine.py
 │   ├── nanoscale_matrix.py
 │   ├── neural_core_interface.py
+│   ├── neural_router.py
 │   ├── osx_native_bridge.py
 │   ├── pq_crypto_bridge.py
 │   ├── quantum_conductance.py
@@ -1036,6 +1067,9 @@ SIx/
 │   ├── test_docker_fleet_registry.py
 │   ├── test_neural_core_interface.py
 │   ├── test_si_x_mesh.py
+│   ├── test_six_app_layer.py
+├── web/
+│   ├── index.html
 ├── assets/
 │   ├── neural-core.gif
 │   ├── neural-core/
@@ -1046,7 +1080,7 @@ SIx/
 │   │   ├── thinking.png
 ```
 
-72 files total. (`assets/cover.png` is added by uploading the cover image to an `assets/` folder — the README header points there. The Neural Core GIF and state frames under `assets/` are generated by `scripts/generate_neural_core_assets.py`.)
+79 files total. (The README header points at the repo-root `SIx cover.png`, which is in the repo. The Neural Core GIF and state frames under `assets/` are generated by `scripts/generate_neural_core_assets.py`.)
 
 ---
 
@@ -1054,20 +1088,21 @@ SIx/
 
 - **GitHub Actions run #4** for head `a991cf25` — **SUCCESS, 2m 4s** (2026-11-17): unittest suite, Docker Compose config validation, Lean step skipped (no Lean on the runner).
 - **Runs #1–3 failed** on the `error_reduction_mesh` tensor-shape bug described above; the fix is commit `a991cf25`.
-- **Local verification of that fix:** unittest 2/2 OK (CPU torch) at the time — the suite has since grown to **30/30 OK** across 3 test modules (mesh 2, fleet registry 11, Neural Core 17; CPU torch) — plus width-combination checks (64×32, 64×64, 32×32, single-tensor) all returning the correct output shape, and `docker compose config` exit 0.
-- **Every badge URL in this README was checked live** before this README was pushed. The workflow badge is the live Shields Actions-status badge for `si_x_pipeline.yml` on `main`.
-- **PUSHED:** kimanicollier44-cmyk/SIx, head **11daa162** — fleet Docker registry merged (registry module, aggregator wiring, 11 registry tests, this README); all 4 read-back blobs = local.
+- **Local verification of that fix:** unittest 2/2 OK (CPU torch) at the time — plus width-combination checks (64×32, 64×64, 32×32, single-tensor) all returning the correct output shape, and `docker compose config` exit 0.
+- **2026-11-21 — the app layer landed** (via the GitHub web UI): `src/app_gateway.py`, `src/multimodal_engine.py`, `src/neural_router.py`, `src/core_adapters.py`, `web/index.html`, and `tests/test_six_app_layer.py`; `requirements.txt` was rewritten in the same pass.
+- **2026-11-24 — CI broke and was fixed.** Run `44858735978` failed at step 6 (Run CI Pipeline Script): the rewritten `requirements.txt` had dropped Pillow, so `tests/test_neural_core_interface.py` died on the runner with `ModuleNotFoundError: No module named 'PIL'`. Reproduced exactly against the live tree in a clean venv with only the declared deps, then fixed by declaring `Pillow>=10.0.0` + `websockets>=12.0`: **30 tests OK** across 4 modules (mesh 2, fleet registry 11, Neural Core 17, app layer import-checked). **PUSHED:** head **afc1d4ed** — read-back blob = local.
+- **This README** was updated on 2026-11-24 to match the live tree (app layer, web UI, current requirements, current CI state).
 
 ## ⚠️ Honest limitations
 
 - **Simulated hardware.** Memristor crossbars, quantum conductance, biphasic stimulation, and thermal behaviour are software models. No physical device is driven by this code as shipped.
 - **Cryptography is a model.** `pq_crypto_bridge.py` and `quantum_neural_cryptography.py` are lattice-*inspired* hashing / oscillator simulations built on `hashlib` — not audited, certified post-quantum cryptography. Don't secure real traffic with them.
-- **No Dockerfile yet.** `config/docker-compose.yml` declares `build: .` for `si-x-fastapi` and `scout-bot-agent`, but the repo contains no Dockerfile, and `src/mesh_orchestrator.py` defines `ZeroShotAGICrossbar`, not a FastAPI `app` object — so `docker compose config` validates, but `up --build` will not serve until a Dockerfile and an `app` entrypoint are added.
-- **Optional deps aren't in `requirements.txt`.** `redis`, `websockets`, `rclpy`, FastAPI/Uvicorn are imported by their modules but must be installed separately (see Requirements).
+- **No Dockerfile yet.** `config/docker-compose.yml` declares `build: .` for `si-x-fastapi` and `scout-bot-agent`, but the repo contains no Dockerfile — so `docker compose config` validates, but `up --build` will not serve until a Dockerfile is added. A real FastAPI `app` object now exists (`src/app_gateway.py`); the Compose command still points at `src.mesh_orchestrator:app`, which defines `ZeroShotAGICrossbar`, not an `app` — repoint it at `src.app_gateway:app` when the Dockerfile lands.
+- **Deps are declared — with one exception.** `requirements.txt` now declares the full Python stack (torch, fastapi, uvicorn[standard], httpx, pydantic, redis, Pillow, websockets). `rclpy` / `std_msgs` (ROS 2) are the exception: they come with a ROS install, not pip. The app layer's local-SLM and frontier routes are config-only until `SIX_LOCAL_MODEL_URL` / `SIX_CLOUD_MODEL_URL` (+ `SIX_CLOUD_API_KEY`) are set — the test suite calls nothing external.
 - **One Lean proof is incomplete.** `semigroup_growth_unbounded` in `src/lean/ConvexSemigroupProof.lean` ends in `sorry`. The other theorems (conductance quantization, calcium boundedness, Byzantine median stability, convex-hull boundedness) are complete as written; Lean is not installed on the CI runner, so CI does not type-check these files.
 - **A stray shell script lives in `.github/workflows/`.** `.github/workflows/ci_pipeline_workflow.sh` is a duplicate of the CI script; GitHub Actions ignores non-YAML files there. The real pipeline script is `scripts/ci_pipeline_workflow.sh`, and the legacy `scripts/run_ci_pipeline.sh` still calls Compose v1 (`docker-compose`).
-- **Test coverage is still uneven.** 30 unit tests cover the ANI→AGI bridge and the error-reduction core (2), the Docker fleet registry (11), and the Neural Core interface (17). The other 36 `src/` modules are exercised only by import in this README's audit, not by dedicated tests.
+- **Test coverage is still uneven.** 30 unit tests cover the ANI→AGI bridge and the error-reduction core (2), the Docker fleet registry (11), and the Neural Core interface (17); the app layer adds 3 pytest-style tests (router, engine fast path, gateway endpoints). The remaining `src/` modules are exercised only by import, not by dedicated tests.
 
 ---
 
-*SIx (Gen-Intel Secure Mesh) — by Darion Kellar / kimanicollier44-cmyk. Research architecture: simulated neuromorphic mesh, formal proofs, and a CI pipeline that earned its green check.*
+*SIx (Gen-Intel Secure Mesh) — by Darion Kellar / kimanicollier44-cmyk. Research architecture: simulated neuromorphic mesh, formal proofs, an app layer with a web UI, and a CI pipeline that earned its green check the hard way.*
